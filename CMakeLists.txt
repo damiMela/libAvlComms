@@ -1,5 +1,5 @@
 # Set minimum CMake version
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.1)
 
 # Project name
 project(libAvlComms VERSION 1.0 LANGUAGES CXX)
@@ -19,7 +19,7 @@ set (OPENAVL_SOURCES
 )
 
 # Create the library
-add_library(AvlComms ${OPENAVL_SOURCES})
+add_library(AvlComms STATIC ${OPENAVL_SOURCES})
 
 set_property(TARGET AvlComms PROPERTY CXX_STANDARD 98)
 
