@@ -1,3 +1,9 @@
+# Set minimum CMake version
+cmake_minimum_required(VERSION 3.1)
+
+# Project name
+project(AvlComms_lib CXX)
+
 #update git dependencies
 execute_process(
     COMMAND git submodule update --recursive --remote
@@ -15,13 +21,6 @@ set (OPENAVL_SOURCES
 add_library(AvlComms ${OPENAVL_SOURCES})
 
 set_property(TARGET AvlComms PROPERTY CXX_STANDARD 98)
-
-
-# FetchContent_GetProperties(CUtils)
-# if(NOT CUtils_POPULATED)
-#     FetchContent_Populate(CUtils)
-# endif()
-
 
 # Include directories for the library header files
 target_include_directories(AvlComms 
