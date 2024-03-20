@@ -1,15 +1,13 @@
-# CMakeLists.txt for the main project directory
-
-# Set minimum CMake version
-cmake_minimum_required(VERSION 3.1)
-
-# Project name
-project(OpenAvl_lib CXX)
+#update git dependencies
+execute_process(
+    COMMAND git submodule update --recursive --remote
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 # Add source files for the library
 set (LIB_SRC src)
 set (OPENAVL_SOURCES
-    ${LIB_SRC}/NetClient.cpp
+    AvlNetClient.cpp
     ${LIB_SRC}/NetSocket.cpp
 )
 
@@ -18,18 +16,29 @@ add_library(AvlComms ${OPENAVL_SOURCES})
 
 set_property(TARGET AvlComms PROPERTY CXX_STANDARD 98)
 
+
+# FetchContent_GetProperties(CUtils)
+# if(NOT CUtils_POPULATED)
+#     FetchContent_Populate(CUtils)
+# endif()
+
+
 # Include directories for the library header files
 target_include_directories(AvlComms 
+    PUBLIC .
     PUBLIC inc
     PUBLIC lib/CUtils
 )
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 
-# Add the executable
-add_executable(example examples/Main.cpp)
+add_custom_target(copy_header_files ALL
+    DEPENDS AvlComms
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:AvlComms> ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_STATIC_LIBRARY_PREFIX}AvlComms${CMAKE_STATIC_LIBRARY_SUFFIX}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/AvlNetClient.hpp ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMENT "Copying header files to output directory"
+)
 
-# Link the executable with the LcdMenuBuilder library
-target_link_libraries(example AvlComms)
 
 # Clean target to remove extra files
 add_custom_target(clean_extra_files

@@ -17,8 +17,8 @@ public:
 int main()
 {
     ConsoleLogger logger;
-    NetConfiguration netConfig(999, "127.0.0.1", 40941);
-    NetClient client(netConfig, &logger);
+    NetConfiguration netConfig(999, "127.0.0.1", 1234);
+    AvlNetClient client(netConfig, &logger);
     client.Init();
     client.RequestConnection();
 
