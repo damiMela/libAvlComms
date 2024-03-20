@@ -26,6 +26,7 @@ namespace avlComms
     typedef enum __net_recv_result_t__
     {
         RECV_OK,
+        RECV_NO_DATA,
         RECV_FAILED,
         RECV_CLOSED_BY_HOST,
         RECV_MSG_ERROR

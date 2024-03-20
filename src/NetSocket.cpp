@@ -10,6 +10,10 @@
 
 using namespace avlComms;
 
+NetSocket::NetSocket(int sockfd) : sockfd(sockfd)
+{
+}
+
 NetSocket::NetSocket(std::string &ip, uint16_t port) : ip(ip), port(port)
 {
 }
@@ -60,23 +64,19 @@ net_errno_t NetSocket::Disconnect()
 }
 #include <iostream>
 #include <string.h>
-net_errno_t NetSocket::Read(std::vector<uint8_t> &buffer, uint16_t &msgLen, uint16_t timeout, bool peek)
+NetSocketResult<uint16_t> NetSocket::Read(std::vector<uint8_t> &buffer, uint16_t timeout, bool peek)
 {
-    msgLen = 0;
     uint8_t flags = peek ? MSG_PEEK : 0;
-    std::vector<uint8_t> prevBuffer = buffer;
-    ssize_t bytes = recv(sockfd, &buffer[0], buffer.size(), flags);
-    if (peek)
-        buffer = prevBuffer;
+    ssize_t bytes = recv(sockfd, &buffer[0], buffer.capacity(), flags);
     if (bytes < 0)
     {
-        return SOCK_RECV_ERROR;
+        return NetSocketResult<uint16_t>(SOCK_RECV_ERROR);
     }
 
     if (bytes == 0)
-        return SOCK_CLOSED_BY_HOST;
+        return NetSocketResult<uint16_t>(SOCK_CLOSED_BY_HOST);
 
-    return SOCK_NO_ERROR;
+    return NetSocketResult<uint16_t>(bytes);
 }
 
 net_errno_t NetSocket::Send(void *buffer, const uint16_t msgLen)
@@ -87,20 +87,31 @@ net_errno_t NetSocket::Send(void *buffer, const uint16_t msgLen)
     return SOCK_NO_ERROR;
 }
 
-net_errno_t NetSocket::ReadDataAvailable(bool &dataAvailable, uint16_t timeout)
+NetSocketResult<bool> NetSocket::ReadDataAvailable(uint16_t timeout)
 {
-    struct pollfd fds[1];
-    fds[0].fd = sockfd;
-    fds[0].events = POLLIN;
+    struct pollfd readfds;
+    readfds.fd = sockfd;
+    readfds.events = POLLIN;
 
-    dataAvailable = false;
+    int retval = poll(&readfds, 1, timeout);
+    if (retval == -1)
+        return NetSocketResult<bool>(SOCK_POLL_ERROR);
 
-    int ret = poll(fds, 1, timeout); // timeout is in milliseconds
-    if (ret < 0)
-        return SOCK_POLL_ERROR;
+    if (retval == 0)
+        return NetSocketResult<bool>(false);
 
-    if (ret > 0 && fds[0].revents & POLLIN)
-        dataAvailable = true;
-
-    return SOCK_NO_ERROR;
+    // Data available to read
+    char buf;
+    int bytesRead = recv(sockfd, &buf, 1, MSG_PEEK);
+    if (bytesRead == -1)
+    {
+        if (errno == EWOULDBLOCK || errno == EAGAIN)
+            return NetSocketResult<bool>(false);
+        else
+            return NetSocketResult<bool>(SOCK_RECV_ERROR);
+    }
+    else if (bytesRead == 0)
+        return NetSocketResult<bool>(SOCK_CLOSED_BY_HOST);
+    else
+        return NetSocketResult<bool>(true);
 }
