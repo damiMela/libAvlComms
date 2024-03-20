@@ -1,0 +1,2 @@
+#define VERSION_MAJOR @libAvlComms_VERSION_MAJOR@
+#define VERSION_MINOR @libAvlComms_VERSION_MINOR@

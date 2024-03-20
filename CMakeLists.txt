@@ -1,10 +1,11 @@
 # Set minimum CMake version
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.22)
 
 # Project name
-project(AvlComms_lib CXX)
+project(libAvlComms VERSION 1.0 LANGUAGES CXX)
+configure_file(version.h version.h)
 
-#update git dependencies
+include(ExternalProject)
 execute_process(
     COMMAND git submodule update --recursive --remote
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
